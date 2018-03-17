@@ -13,7 +13,10 @@
   "types": "dist/index.d.ts",
   "license": "AGPL",
   "dependencies": {
-    "@types/node": "^9.4.7"
+    "@types/node": "^9.4.7",
+    "@types/socket.io": "^1.4.32",
+    "querystring": "^0.2.0",
+    "socket.io": "^2.0.4"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.44",

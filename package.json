@@ -14,9 +14,9 @@
   "license": "AGPL",
   "dependencies": {
     "@types/node": "^9.4.7",
-    "@types/socket.io": "^1.4.32",
+    "@types/ws": "^4.0.1",
     "querystring": "^0.2.0",
-    "socket.io": "^2.0.4"
+    "ws": "^5.0.0"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.44",

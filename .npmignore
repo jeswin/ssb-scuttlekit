@@ -1,5 +1,6 @@
 src/*
 dist/test/*
+pub/*
 build.sh
 .jshintrc
 .gitignore

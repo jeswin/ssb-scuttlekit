@@ -1,1 +1,1 @@
-A framework for writing untrusted application on the Secure ScuttleButt network.
+A framework for writing untrusted applications on the Secure ScuttleButt network.

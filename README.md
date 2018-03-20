@@ -36,7 +36,10 @@ Start ScuttleKit on page load. If the app is not registered, the SDK will redire
 the user can choose to grant required permissions. After granting permissions (or denying them), the browser is redirected to a callback url with a token.
 The sdk will store the token in local storage for long term use, and is sent with every request made to the ScuttleKit server.
 
-During registration, the schema for the database needs to be provided to ScuttleKit. See the example below.
+During registration, the schema for the database needs to be provided to ScuttleKit.
+The schema defines primary keys and foreign keys as well. Primary keys will always be GUIDs.
+
+See the example below.
 
 ```js
 // Assuming you're using npm/yarn and a build tool like browserify or webpack
@@ -48,16 +51,24 @@ const appName = "scuttledo";
 
 const schema = {
   tables: {
-    todos: {
+    todo: {
       fields: {
         id: { type: "string" },
         text: { type: "string" },
         dueDate: { type: "string" },
-        completed: { type: "boolean" }
+        completed: { type: "boolean" },
+        timestamp: { type: "number", required: false }
       },
       encrypted: { type: "boolean" },
       primaryKey: "id",
       foreignKeys: [{ field: "listId", table: "lists", primaryKey: "id" }]
+    },
+    list: {
+      fields: {
+        id: { type: "string" },
+        name: { type: "string" }
+      },
+      primaryKey: "id"
     }
   }
 };
@@ -66,9 +77,9 @@ async function onLoad() {
   const sdk = new ScuttleKit();
   if (!sdk.isRegistered()) {
     const callbackUrl = "/onregister";
-    sdk.register(appName, { sqlite: schema }, callbackUrl);
+    sdk.register(appName, { sqlite: schema }, callbackUrl); //Returns a promise
   } else {
-    sdk.init();
+    sdk.init(); //Returns a promise
   }
 }
 ```
@@ -80,10 +91,14 @@ The getService() API returns an reference to the sqlite database.
 
 For reading, only prepared queries are supported as a best practice.
 
+### Reading Data
+
 ```js
 async function loadTodos(date) {
   const db = sdk.getService("sqlite");
-  return db.query(`SELECT * FROM todos WHERE date='$date'`, { $date: date });
+  return await db.query(`SELECT * FROM todos WHERE date='$date'`, {
+    $date: date
+  });
 }
 ```
 
@@ -92,21 +107,37 @@ You can use joins, sure.
 ```js
 async function loadTodosByListName(list) {
   const db = sdk.getService("sqlite");
-  return db.query(
+  return await db.query(
     `SELECT * FROM todos JOIN lists ON todos.listId = lists.id WHERE lists.name='$list'`,
     { $list: list }
   );
 }
 ```
 
+### Insert a Row
+
 Insert an object.
 
 ```js
 async function addTodo(todo) {
   const db = sdk.getService("sqlite");
-  return db.insert("todos", todo);
+  return await db.insert("todo", todo);
 }
 ```
+
+Corresponding SSB write:
+
+```js
+sbot.publish({
+  type: "scuttledo-todo",
+  text: todo.text,
+  dueDate: todo.dueDate,
+  completed: todo.completed,
+  __owner: sdk.currentUser
+});
+```
+
+### Update a Row
 
 Update an object. Make sure you pass in the primary key, in addition to the fields to be updated.
 If the primary key is missing, the statement will not execute.
@@ -114,26 +145,159 @@ If the primary key is missing, the statement will not execute.
 ```js
 async function setCompleted(id) {
   const db = sdk.getService("sqlite");
-  return db.update("todos", { id, completed: true });
+  return await db.update("todo", { id, completed: true });
 }
 ```
 
+Corresponding SSB write:
+
+```js
+sbot.publish({
+  type: "scuttledo-todo",
+  id: id,
+  completed: true
+});
+```
+
+### Delete a Row
+
 Delete a todo. If the primary key is missing, the statement will not execute.
 Remember that the data is only deleted from the sqlite view. It will always reside in the append-only SSB log.
+Internally, this simply sets an \_\_isDeleted field in the row to true.
 
 ```js
 async function deleteTodo(id) {
   const db = sdk.getService("sqlite");
-  return db.del("todos", id);
+  return await db.del("todo", id);
 }
 ```
+
+Corresponding SSB write:
+
+```js
+sbot.publish({
+  type: "scuttledo-todo",
+  id: id,
+  __isDeleted: true
+});
+```
+
+## Permissions
+
+By default, a row can only be modified by its owner as specified in the \_\_owner property of the row.
+However, a row owner can allow other users to change the data by setting permissions.
+Once permissions are set, SSB logs replicated from others users targeting the same table-rowid combination can potentially change the view.
+
+Here's how Alice can allow Bob to edit a Todo.
+
+```js
+async function createSharedTodo(todo) {
+  const db = sdk.getService("sqlite");
+  return await db.insert("todo", todo, {
+    permissions: [{ user: "bobs-public-key" }]
+  });
+}
+```
+
+Bob could now potentially do this on an entry created by Alice.
+'id' corresponds to a todo originally created by his friend Alice.
+
+```js
+async function completeSharedTodo(id) {
+  const db = sdk.getService("sqlite");
+  return await db.update("todo", { id, completed: true });
+}
+```
+
+Write permissions can be restricted to specific fields.
+In the following example, Bob is only allowed to edit the 'completed' field.
+
+```js
+async function createSharedTodo(todo) {
+  const db = sdk.getService("sqlite");
+  return await db.insert("todo", todo, {
+    permissions: [{ user: "some-public-key", fields: ["completed"] }]
+  });
+}
+```
+
+if Alice specifies fields in the permission assignment, Bob will not be able to delete a row.
+Unless the \_\_isDeleted is also added to permissions.
+
+```js
+async function createSharedTodo(todo) {
+  const db = sdk.getService("sqlite");
+  return await db.insert("todo", todo, {
+    permissions: [
+      { user: "some-public-key", fields: ["__isDeleted", "completed"] }
+    ]
+  });
+}
+```
+
+Alice can modify permissions during updation also, not just an insert.
+
+```js
+async function assignPermissions(id) {
+  const db = sdk.getService("sqlite");
+  return await db.update(
+    "todo",
+    { id },
+    {
+      permissions: [{ user: "bobs-public-key" }]
+    }
+  );
+}
+```
+
+### Transactions
+
+A ScuttleKit transaction means that the view will not update until the "transaction complete" message is received.
+
+```js
+async function addTodoAndDeleteAnother(newTodo, oldTodoId) {
+  const db = sdk.getService("sqlite");
+  const transaction = db.createTransaction();
+  await db.insert("todo", newTodo, { transaction });
+  await db.del("todo", oldTodoId, { transaction });
+  await transaction.complete();
+}
+```
+
+Corresponding SSB write:
+
+```js
+// Add a todo
+sbot.publish({
+  type: "scuttledo-todo",
+  id: newTodo.id,
+  // other fields...
+  transaction: "99324-120-random-id"
+});
+
+// Delete another todos
+sbot.publish({
+  type: "scuttledo-todo",
+  id: oldTodoId,
+  __isDeleted: true,
+  transaction: "99324-120-random-id"
+});
+
+// Complete the transaction
+sbot.publish({
+  type: "scuttledo-transaction",
+  transaction: "99324-120-random-id"
+});
+```
+
+Note that the data in the transaction will be visible in raw SSB logs, even if the transaction is not committed.
 
 ## Accessing other data from the SSB log (Incomplete)
 
 In addition to the private database, apps can also access other message-types from the SSB log.
 The list of message-types should be during registration.
 
-External data is not replicated in sqlite for performance reasons. 
+External data is not replicated in sqlite for performance reasons.
 So instead of SQL queries, you need to use native SSB-style APIs to access this data.
 
 ```js
@@ -183,5 +347,3 @@ Another use of the FlumeView service is to access live data streams, including a
 ## Accessing Blobs (Incomeplete)
 
 TODO
-
-

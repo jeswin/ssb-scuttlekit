@@ -344,6 +344,6 @@ async function getAbout(name) {
 
 Another use of the FlumeView service is to access live data streams, including app specific (private) logs and external logs.
 
-## Accessing Blobs (Incomeplete)
+## Accessing Blobs (incomplete)
 
 TODO

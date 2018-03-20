@@ -24,17 +24,15 @@ To try it out, visit a webapp which uses the ScuttleKit API, such as - Links go 
 
 ## Creating a client
 
-Include the scuttlekit-client library to a web page for easy access to the ScuttleKit SDK.
-You can either add scuttlekit-client with a script tag, or download from npm.
+Include the scuttlekit-client library on a web page for easy access to the ScuttleKit SDK.
+You can either add scuttlekit-client with a script tag, or download via npm if you're using a build system.
 
 ```bash
 # Either install via yarn/npm or include a <script> tag
 yarn add scuttlekit-client
 ```
 
-Start ScuttleKit on page load. If the app is not registered, the SDK will redirect the browser to a ScuttleKit hosted page where
-the user can choose to grant required permissions. After granting permissions (or denying them), the browser is redirected to a callback url with a token.
-The sdk will store the token in local storage for long term use, and is sent with every request made to the ScuttleKit server.
+Start ScuttleKit on page load. If the app is not registered, the SDK will redirect the browser to a ScuttleKit hosted page (on port 1103) where the user can choose to grant requested permissions. After granting permissions (or denying them), the browser is redirected to a callback url with a token. The sdk will store the token in local storage for long term use, and is sent with every request made to the ScuttleKit server.
 
 During registration, the schema for the database needs to be provided to ScuttleKit.
 The schema defines primary keys and foreign keys as well. Primary keys will always be GUIDs.
@@ -87,9 +85,9 @@ async function onLoad() {
 ## Reading and Manipulating Data
 
 ScuttleKit internally runs an Sqlite database which will hold all your data.
-The getService() API returns an reference to the sqlite database.
+The getService() API returns a reference to the sqlite database.
 
-For reading, only prepared queries are supported as a best practice.
+For reading data, only prepared queries are supported as a best practice.
 
 ### Reading Data
 
@@ -199,8 +197,7 @@ async function createSharedTodo(todo) {
 }
 ```
 
-Bob could now potentially do this on an entry created by Alice.
-'id' corresponds to a todo originally created by his friend Alice.
+Bob could now edit an entry created by Alice. In the following example, 'id' corresponds to a todo originally created by his friend Alice.
 
 ```js
 async function completeSharedTodo(id) {
@@ -221,8 +218,7 @@ async function createSharedTodo(todo) {
 }
 ```
 
-if Alice specifies fields in the permission assignment, Bob will not be able to delete a row.
-Unless the \_\_isDeleted is also added to permissions.
+if Alice specifies fields in the permission assignment, Bob will not be able to delete a row unless the \_\_isDeleted field is also added to permissions.
 
 ```js
 async function createSharedTodo(todo) {
@@ -235,7 +231,7 @@ async function createSharedTodo(todo) {
 }
 ```
 
-Alice can modify permissions during updation also, not just an insert.
+Alice can modify permissions during updation also, not just during an insert.
 
 ```js
 async function assignPermissions(id) {
@@ -294,8 +290,7 @@ Note that the data in the transaction will be visible in raw SSB logs, even if t
 
 ## Accessing other data from the SSB log (Incomplete)
 
-In addition to the private database, apps can also access other message-types from the SSB log.
-The list of message-types should be during registration.
+In addition to the private database, apps can also access other message-types from the SSB log. The list of message-types should be provided to the registration API and will need to be approved by the user.
 
 External data is not replicated in sqlite for performance reasons.
 So instead of SQL queries, you need to use native SSB-style APIs to access this data.

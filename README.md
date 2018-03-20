@@ -1,6 +1,6 @@
 # Scuttlekit
 
-ScuttleKit allows running untrusted applications on the SSB network - in the same way you can run untrusted apps on a web browser.
+ScuttleKit allows running untrusted applications on the SSB network - in the same way you can run untrusted apps in a web browser.
 Each app is allowed to read and write to an private database, and writes are appended to the SSB message log with the type {app-name}-{tablename}.
 The database is actually just an "RDBMS-like" view of the SSB log. So at any point, it will be possible to recreate the database from SSB message logs.
 
@@ -24,7 +24,7 @@ You're all set to run ScuttleKit applications. The plugin starts a Web Sockets s
 ## Creating a client
 
 Include the scuttlekit-client library on a web page for easy access to the ScuttleKit SDK.
-You can either add scuttlekit-client with a script tag, or download via npm if you're using a build system.
+You can either add scuttlekit-client with a script tag, or use it via npm if you're using a JS bundler (like browserify, parcel or webpack).
 
 ```bash
 # Either install via yarn/npm or include a <script> tag
@@ -43,8 +43,15 @@ See the example below.
 //   call this function after the page Loads.
 import ScuttleKit from "scuttlekit-client";
 
-//Define a schema first
+// Unique name for your app.
 const appName = "scuttledo";
+
+// Your app version
+const version = "1.0.0";
+
+//Which version of the ScuttleKit SDK are you targeting?
+//If a lower version is installed on the user's computer, an error is displayed.
+const sdkCompatibility = "^0.0.1";
 
 const schema = {
   tables: {
@@ -74,7 +81,13 @@ async function onLoad() {
   const sdk = new ScuttleKit();
   if (!sdk.isRegistered()) {
     const callbackUrl = "/onregister";
-    sdk.register(appName, { sqlite: schema }, callbackUrl); //Returns a promise
+    const options = {
+      app,
+      version,
+      sdkCompatibility,
+      services: { sqlite: schema }
+    };
+    sdk.register(options, callbackUrl); //Returns a promise
   } else {
     sdk.init(); //Returns a promise
   }

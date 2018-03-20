@@ -128,7 +128,7 @@ async function deleteTodo(id) {
 }
 ```
 
-## Accessing other data from the ssb log. (Incomplete)
+## Accessing other data from the SSB log (Incomplete)
 
 In addition to the private database, apps can also access other message-types from the SSB log.
 The list of message-types should be during registration.

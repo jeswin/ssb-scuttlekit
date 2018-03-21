@@ -1,3 +1,5 @@
+NOTE: This is work in progress. Planning for an alpha by the end of April.
+
 # Scuttlekit
 
 ScuttleKit allows running untrusted applications on the SSB network - in the same way you can run untrusted apps in a web browser.

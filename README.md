@@ -1,10 +1,10 @@
 # Scuttlekit
 
-ScuttleKit allows running untrusted applications on the SSB network - in the same way you can run untrusted apps on a web browser.
-Each app is allowed to read and write to an isolated, private database, and writes are appended to the SSB message log with the type {app-name}-{tablename}.
-The database is actually just a "RDBMS-like" view of the SSB log. So any point, it will be possible to recreate the database from SSB message logs.
+ScuttleKit allows running untrusted applications on the SSB network - in the same way you can run untrusted apps in a web browser.
+Each app is allowed to read and write to an private database, and writes are appended to the SSB message log with the type {app-name}-{tablename}.
+The database is actually just an "RDBMS-like" view of the SSB log. So at any point, it will be possible to recreate the database from SSB message logs.
 
-If the app wants to read data other message types (such as posts, about, contacts etc) from the SSB log, it needs to request permissions from the user.
+If an app wants to read data other message types (such as posts, about, contacts etc) from the SSB log, it needs to request permissions from the user.
 As of now, apps will only have read access to external data.
 
 ## Getting Started (Incomplete)
@@ -19,13 +19,12 @@ If you're already on ScuttleButt, install the scuttlekit plugin.
 sbot plugins.install ssb-scuttlekit
 ```
 
-You're all set. The plugin starts a Web Sockets server on port 1103, which can be accessed from a webpage using the scuttlekit-client library.
-To try it out, visit a webapp which uses the ScuttleKit API, such as - Links go here...
+You're all set to run ScuttleKit applications. The plugin starts a Web Sockets server on port 1103, which can be accessed from a webpage using the scuttlekit-client library. To try it out, visit a webapp which uses the ScuttleKit API, such as - Links go here...
 
 ## Creating a client
 
 Include the scuttlekit-client library on a web page for easy access to the ScuttleKit SDK.
-You can either add scuttlekit-client with a script tag, or download via npm if you're using a build system.
+You can either add scuttlekit-client with a script tag, or use it via npm if you're using a JS bundler (like browserify, parcel or webpack).
 
 ```bash
 # Either install via yarn/npm or include a <script> tag
@@ -34,8 +33,8 @@ yarn add scuttlekit-client
 
 Start ScuttleKit on page load. If the app is not registered, the SDK will redirect the browser to a ScuttleKit hosted page (on port 1103) where the user can choose to grant requested permissions. After granting permissions (or denying them), the browser is redirected to a callback url with a token. The sdk will store the token in local storage for long term use, and is sent with every request made to the ScuttleKit server.
 
-During registration, the schema for the database needs to be provided to ScuttleKit.
-The schema defines primary keys and foreign keys as well. Primary keys will always be GUIDs.
+As part of the registration, the developer needs to supply the database schema to ScuttleKit.
+In addition to various fields which make up the view, the schema defines primary keys and foreign keys as well. Primary keys will always be GUIDs.
 
 See the example below.
 
@@ -44,8 +43,15 @@ See the example below.
 //   call this function after the page Loads.
 import ScuttleKit from "scuttlekit-client";
 
-//Define a schema first
+// Unique name for your app.
 const appName = "scuttledo";
+
+// Your app version
+const version = "1.0.0";
+
+//Which version of the ScuttleKit SDK are you targeting?
+//If a lower version is installed on the user's computer, an error is displayed.
+const sdkCompatibility = "^0.0.1";
 
 const schema = {
   tables: {
@@ -75,7 +81,13 @@ async function onLoad() {
   const sdk = new ScuttleKit();
   if (!sdk.isRegistered()) {
     const callbackUrl = "/onregister";
-    sdk.register(appName, { sqlite: schema }, callbackUrl); //Returns a promise
+    const options = {
+      app,
+      version,
+      sdkCompatibility,
+      services: { sqlite: schema }
+    };
+    sdk.register(options, callbackUrl); //Returns a promise
   } else {
     sdk.init(); //Returns a promise
   }
@@ -182,9 +194,7 @@ sbot.publish({
 
 ## Permissions
 
-By default, a row can only be modified by its owner as specified in the \_\_owner property of the row.
-However, a row owner can allow other users to change the data by setting permissions.
-Once permissions are set, SSB logs replicated from others users targeting the same table-rowid combination can potentially change the view.
+By default, a row can only be modified by whoever created the row (called owner). However, an owner can allow other users to change the data by setting permissions. Once permissions are set, writes streaming in via SSB log replication targeting the same table-rowid combination can potentially change the view.
 
 Here's how Alice can allow Bob to edit a Todo.
 
@@ -197,7 +207,7 @@ async function createSharedTodo(todo) {
 }
 ```
 
-Bob could now edit an entry created by Alice. In the following example, 'id' corresponds to a todo originally created by his friend Alice.
+Bob can now edit an entry created by Alice. In the following example, assume that 'id' corresponds to a todo originally created by his friend Alice.
 
 ```js
 async function completeSharedTodo(id) {
@@ -231,7 +241,7 @@ async function createSharedTodo(todo) {
 }
 ```
 
-Alice can modify permissions during updation also, not just during an insert.
+Alice can modify permissions during updation as well, and not just during an insert.
 
 ```js
 async function assignPermissions(id) {
@@ -268,7 +278,7 @@ sbot.publish({
   type: "scuttledo-todo",
   id: newTodo.id,
   // other fields...
-  transaction: "99324-120-random-id"
+  transaction: "some-random-autogenerated-id"
 });
 
 // Delete another todos
@@ -276,17 +286,17 @@ sbot.publish({
   type: "scuttledo-todo",
   id: oldTodoId,
   __isDeleted: true,
-  transaction: "99324-120-random-id"
+  transaction: "some-random-autogenerated-id"
 });
 
 // Complete the transaction
 sbot.publish({
   type: "scuttledo-transaction",
-  transaction: "99324-120-random-id"
+  transaction: "some-random-autogenerated-id"
 });
 ```
 
-Note that the data in the transaction will be visible in raw SSB logs, even if the transaction is not committed.
+Note that the data in the transaction will be visible in raw SSB logs, even if the transaction was not committed.
 
 ### Schema Changes
 
@@ -350,8 +360,8 @@ const schema = {
 
 In addition to the private database, apps can also access other message-types from the SSB log. The list of message-types should be provided to the registration API and will need to be approved by the user.
 
-External data is not replicated in sqlite for performance reasons.
-So instead of SQL queries, you need to use native SSB-style APIs to access this data.
+External data is not replicated in sqlite for performance reasons. So instead of SQL queries, you need to use native SSB-style APIs to access this data.
+Familiarity with flumedb will help.
 
 ```js
 // Assuming you're using npm/yarn and a build tool like browserify or webpack
@@ -384,7 +394,7 @@ async function onLoad() {
 }
 ```
 
-Once the user has granted access, you can query them with the "flumeview-reduce" service.
+If the user has granted an app access to these additional message types, an app may query them with the "flumeview" service.
 
 ```js
 async function getAbout(name) {
@@ -396,6 +406,7 @@ async function getAbout(name) {
 ## Accessing Live Data via Flume View (incomplete)
 
 Another use of the FlumeView service is to access live data streams, including app specific (private) logs and external logs.
+TODO.
 
 ## Accessing Blobs (incomplete)
 

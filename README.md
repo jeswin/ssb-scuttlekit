@@ -327,7 +327,7 @@ const schema = {
 
 There's an onTransformComplete callback available which lets you make additional modifications to a database after all entries have been transformed.
 The onTransformComplete function is regular function in which the standard database API (insert, update etc) is available.
-The difference is that it does not write the changes back to the SSB log (IMPORTANT). Use this sparingly - it's more like an escape hatch.
+The key difference is that it DOES NOT write the changes back to the SSB log. Use this sparingly - it's more like an escape hatch.
 
 ```js
 const schema = {

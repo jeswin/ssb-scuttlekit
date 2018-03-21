@@ -99,9 +99,7 @@ async function onLoad() {
 ## Reading and Manipulating Data
 
 ScuttleKit internally runs an Sqlite database which will hold all your data.
-The getService() API returns a reference to the sqlite database.
-
-For reading data, only prepared queries are supported as a best practice.
+To access the sqlite database, use the getService() API.
 
 ### Reading Data
 

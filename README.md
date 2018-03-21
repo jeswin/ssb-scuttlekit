@@ -288,6 +288,64 @@ sbot.publish({
 
 Note that the data in the transaction will be visible in raw SSB logs, even if the transaction is not committed.
 
+### Schema Changes
+
+It is inevitable that at some point you'll make changes to the schema. To support this, ScuttleKit allows you to define transforms which can convert data from an earlier schema into a newer one.
+Transform Functions are run when the schema version changes.
+
+Transform Functions will need to return an object or an Error for each SSB log entry.
+If an error is thrown, it is logged and the next record is processed. SSB log entries are replayed in the order in which they were received.
+
+```js
+const schema = {
+  tables: {
+    todo: {
+      // ...omitted
+    },
+    list: {
+      // ...omitted
+    }
+  },
+  transform: (logEntry) => {
+    return {
+      firstName: logEntry.name.split(" ")[0],
+      lastName: logEntry.name.split(" ")[1],
+      age: logEntry.age
+    }
+  }
+};
+```
+
+There's an onTransformComplete callback available which lets you make additional modifications to a database after all entries have been transformed.
+The onTransformComplete function is regular function in which the standard database API (insert, update etc) is available.
+The difference is that it does not write the changes back to the SSB log (IMPORTANT).
+
+```js
+const schema = {
+  tables: {
+    todo: {
+      // ...omitted
+    },
+    list: {
+      // ...omitted
+    }
+  },
+  
+  transform: (logEntry) => {
+    // ...omitted
+  },
+  
+  //Note that the db writes in onTransformComplete skip the SSB log.
+  onTransformComplete: (db) => {
+    const todos = await db.query("SELECT * FROM todos");
+    const assigneeNames = todos.map(t => t.assignee);
+    for (const assigneeName of assigneeNames) {
+      db.insert("assignee", { name: assigneeName })
+    }
+  }
+}; 
+```
+
 ## Accessing other data from the SSB log (Incomplete)
 
 In addition to the private database, apps can also access other message-types from the SSB log. The list of message-types should be provided to the registration API and will need to be approved by the user.

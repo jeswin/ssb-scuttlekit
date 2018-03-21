@@ -46,7 +46,8 @@ import ScuttleKit from "scuttlekit-client";
 // Unique name for your app.
 const appName = "scuttledo";
 
-// Your app version
+// Your app/schema version
+// This is stored against each record.
 const version = "1.0.0";
 
 //Which version of the ScuttleKit SDK are you targeting?
@@ -301,10 +302,8 @@ Note that the data in the transaction will be visible in raw SSB logs, even if t
 ### Schema Changes
 
 It is inevitable that at some point you'll make changes to the schema. To support this, ScuttleKit allows you to define transforms which can convert data from an earlier schema into a newer one.
-Transform Functions are run when the schema version changes.
-
-Transform Functions will need to return an object or an Error for each SSB log entry.
-If an error is thrown, it is logged and the next record is processed. SSB log entries are replayed in the order in which they were received.
+Transform Functions are run when the schema version changes - the SSB log is replayed and the transform function will be called for each entry. 
+The function should return an object or throw an Error - if an error is thrown, it is logged and the next record is processed. 
 
 ```js
 const schema = {
@@ -328,7 +327,7 @@ const schema = {
 
 There's an onTransformComplete callback available which lets you make additional modifications to a database after all entries have been transformed.
 The onTransformComplete function is regular function in which the standard database API (insert, update etc) is available.
-The difference is that it does not write the changes back to the SSB log (IMPORTANT).
+The difference is that it does not write the changes back to the SSB log (IMPORTANT). Use this sparingly - it's more like an escape hatch.
 
 ```js
 const schema = {

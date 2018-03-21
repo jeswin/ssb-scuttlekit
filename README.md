@@ -302,24 +302,34 @@ Note that the data in the transaction will be visible in raw SSB logs, even if t
 ### Schema Changes
 
 It is inevitable that at some point you'll make changes to the schema. To support this, ScuttleKit allows you to define transforms which can convert data from an earlier schema into a newer one.
-Transform Functions are run when the schema version changes - the SSB log is replayed and the transform function will be called for each entry. 
-The function should return an object or throw an Error - if an error is thrown, it is logged and the next record is processed. 
+Transform Functions are run when the schema version changes - the SSB log is replayed and the transform function will be called for each entry.
+The function should return an object or throw an Error - if an error is thrown, it is logged and the next record is processed.
+
+Every SSB log entry made via ScuttleKit will contain an \_\_schema property, which signifies the schema at the time of record creation.
+The transform function could use the version to decide how to interpret a record.
 
 ```js
 const schema = {
   tables: {
-    todo: {
-      // ...omitted
-    },
-    list: {
-      // ...omitted
-    }
+    // ...omitted
   },
-  transform: (logEntry) => {
-    return {
-      firstName: logEntry.name.split(" ")[0],
-      lastName: logEntry.name.split(" ")[1],
-      age: logEntry.age
+
+  // Example: Versions prior to 0.1.0, did not have firstName and lastName.
+  // Versions between 0.1.0 and 0.2.1 used fname and lname as field names.
+  // We're going to convert it to firstName and lastName.
+  transform: logEntry => {
+    if (logEntry.__schema <= "0.1.0") {
+      return {
+        firstName: logEntry.name.split(" ")[0],
+        lastName: logEntry.name.split(" ")[1],
+        age: logEntry.age
+      };
+    } else if (logEntry.__schema <= "0.2.1" && logEntry.__schema > "0.1.0") {
+      return {
+        firstName: logEntry.fname,
+        lastName: logEntry.lname,
+        age: logEntry.age
+      };
     }
   }
 };
@@ -339,11 +349,11 @@ const schema = {
       // ...omitted
     }
   },
-  
+
   transform: (logEntry) => {
     // ...omitted
   },
-  
+
   //Note that the db writes in onTransformComplete skip the SSB log.
   onTransformComplete: (db) => {
     const todos = await db.query("SELECT * FROM todos");
@@ -352,7 +362,7 @@ const schema = {
       db.insert("assignee", { name: assigneeName })
     }
   }
-}; 
+};
 ```
 
 ## Accessing other data from the SSB log (Incomplete)

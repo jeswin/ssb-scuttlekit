@@ -4,10 +4,9 @@ NOTE: This is work in progress. Planning for an alpha by the end of April.
 
 Scuttlekit lets developers build distributed web applications on the Secure Scuttlebutt (SSB) network. End users (who will be running the ssb-scuttlekit plugin locally) will be able to run untrusted apps on their web browsers in much the same way web applications are used today. On first run, ScuttleKit will prompt end-users to approve permissions to access their local SSB network. 
 
-Each app is allowed to read and write to an private database, and writes are appended to the SSB message log with the type {app-name}-{tablename}. The database is actually just an "RDBMS-like" view of the SSB log. So at any point, it will be possible to recreate the database from SSB message logs.
+Each app is allowed to read and write to an private database, and writes are appended to the SSB message log with the type {app-name}-{tablename}. The database is actually just an "RDBMS-like" view of the SSB log. So at any point, it will be possible to recreate the database from SSB log entries.
 
-If an app wants to read data other message types (such as posts, about, contacts etc) from the SSB log, it needs to request permissions from the user.
-As of now, apps will only have read access to external data.
+If an app wants to read data other message types (such as posts, about, contacts etc) from the SSB log, it needs to request permissions from the user. As of now, apps will only have read access to external data.
 
 ## Getting Started (Incomplete)
 

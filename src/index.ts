@@ -1,7 +1,9 @@
-import * as qs from "querystring";
 import * as http from "http";
+import * as qs from "querystring";
 import * as url from "url";
 import WebSocket = require("ws");
+
+const packageJSON  = require("../package.json");
 
 type ScuttleBot = any;
 type SSBConfig = any;

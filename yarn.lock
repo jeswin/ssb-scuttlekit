@@ -18,9 +18,9 @@
   version "11.2.0"
   resolved "https://registry.yarnpkg.com/@types/should/-/should-11.2.0.tgz#e74aadfc13a1a0fc4b43786093eda395b6b32263"
 
-"@types/ws@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-4.0.1.tgz#3309d4d02a1ea9cf617d638b9239a2e1e28ef21e"
+"@types/ws@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-4.0.2.tgz#b29037627dd7ba31ec49a4f1584840422efb856f"
   dependencies:
     "@types/events" "*"
     "@types/node" "*"
@@ -66,10 +66,6 @@ escape-string-regexp@1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
 
-explain-error@^1.0.1:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/explain-error/-/explain-error-1.0.4.tgz#a793d3ac0cad4c6ab571e9968fbbab6cb2532929"
-
 fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
@@ -108,14 +104,6 @@ inherits@2:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
 
-looper@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/looper/-/looper-4.0.0.tgz#7706aded59a99edca06e6b54bb86c8ec19c95155"
-
-looper@~3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/looper/-/looper-3.0.0.tgz#2efa54c3b1cbaba9b94aee2e5914b0be57fbb749"
-
 minimatch@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz#5166e286457f03306064be5497e8dbb0c3d32083"
@@ -151,103 +139,19 @@ ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
 
-muxrpc@^7.0.1:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/muxrpc/-/muxrpc-7.0.1.tgz#91c10b893c6b59f34fa800546dcbe136152d4cbb"
-  dependencies:
-    explain-error "^1.0.1"
-    packet-stream-codec "^1.1.1"
-    pull-goodbye "~0.0.1"
-    pull-stream "^3.2.3"
-    push-mux "^1.0.2"
-    push-stream-to-pull-stream "^1.0.0"
-
 once@^1.3.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/once/-/once-1.4.0.tgz#583b1aa775961d4b113ac17d9c50baef9dd76bd1"
   dependencies:
     wrappy "1"
 
-options@>=0.0.5:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/options/-/options-0.0.6.tgz#ec22d312806bb53e731773e7cdaefcf1c643128f"
-
-packet-stream-codec@^1.1.1:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/packet-stream-codec/-/packet-stream-codec-1.1.2.tgz#79b302fc144cdfbb4ab6feba7040e6a5d99c79c7"
-  dependencies:
-    pull-reader "^1.2.4"
-    pull-through "^1.0.17"
-
 path-is-absolute@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/path-is-absolute/-/path-is-absolute-1.0.1.tgz#174b9268735534ffbc7ace6bf53a5a9e1b5c5f5f"
 
-pull-goodbye@~0.0.1:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/pull-goodbye/-/pull-goodbye-0.0.2.tgz#8d8357db55e22a710dfff0f16a8c90b45efe4171"
-  dependencies:
-    pull-stream "~3.5.0"
-
-pull-looper@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/pull-looper/-/pull-looper-1.0.0.tgz#d128b88ada3b16412c6242c4a9b429fa88e97e8e"
-  dependencies:
-    looper "^4.0.0"
-
-pull-reader@^1.2.4:
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/pull-reader/-/pull-reader-1.2.9.tgz#d2e9ad00bcfb54e62aa66d42c2dbbcb5eb6843b0"
-
-pull-stream@^3.2.3:
-  version "3.6.7"
-  resolved "https://registry.yarnpkg.com/pull-stream/-/pull-stream-3.6.7.tgz#fe4ae4f7cc3a9ee3ac82cd5be32729f2f0d5f02b"
-
-pull-stream@~3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/pull-stream/-/pull-stream-3.5.0.tgz#1ee5b6f76fd3b3a49a5afb6ded5c0320acb3cfc7"
-
-pull-through@^1.0.17:
-  version "1.0.18"
-  resolved "https://registry.yarnpkg.com/pull-through/-/pull-through-1.0.18.tgz#8dd62314263e59cf5096eafbb127a2b6ef310735"
-  dependencies:
-    looper "~3.0.0"
-
-pull-ws@^3.3.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/pull-ws/-/pull-ws-3.3.1.tgz#a7a659c3144c29d3ad2a66969b943ec69c465768"
-  dependencies:
-    relative-url "^1.0.2"
-    safe-buffer "^5.1.1"
-    ws "^1.1.0"
-
-push-mux@^1.0.2:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/push-mux/-/push-mux-1.0.6.tgz#246334478a274ce96c88775f757d7cc18ef63a90"
-  dependencies:
-    push-stream "^10.0.0"
-
-push-stream-to-pull-stream@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/push-stream-to-pull-stream/-/push-stream-to-pull-stream-1.0.1.tgz#e43519da6f0ede715044330dcb830ed408d5332c"
-  dependencies:
-    pull-looper "^1.0.0"
-
-push-stream@^10.0.0:
-  version "10.0.3"
-  resolved "https://registry.yarnpkg.com/push-stream/-/push-stream-10.0.3.tgz#13d6aef4b506c65bbc3aa62409a8da6ce147ef87"
-
 querystring@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
-
-relative-url@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/relative-url/-/relative-url-1.0.2.tgz#d21c52a72d6061018bcee9f9c9fc106bf7d65287"
-
-safe-buffer@^5.1.1:
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.1.tgz#893312af69b2123def71f57889001671eeb2c853"
 
 should-equal@^2.0.0:
   version "2.0.0"
@@ -293,20 +197,9 @@ supports-color@4.4.0:
   dependencies:
     has-flag "^2.0.0"
 
-ultron@1.0.x:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/ultron/-/ultron-1.0.2.tgz#ace116ab557cd197386a4e88f4685378c8b2e4fa"
-
 wrappy@1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
-
-ws@^1.1.0:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.5.tgz#cbd9e6e75e09fc5d2c90015f21f0c40875e0dd51"
-  dependencies:
-    options ">=0.0.5"
-    ultron "1.0.x"
 
 ws@^5.0.0:
   version "5.0.0"

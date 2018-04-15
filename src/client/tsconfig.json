@@ -1,18 +1,19 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outFile": "../../dist/client/bundle.js",
     "allowJs": false,
+    "jsx": "react",
     "target": "es2015",
-    "module": "commonjs",
+    "module": "amd",
     "moduleResolution": "node",
     "declaration": true,
-    "lib": ["es2018"],
+    "lib": ["es2018", "dom"],
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "strict": true,
     "types": ["node"]
   },
-  "files": ["./src/index.ts"],
-  "include": ["./src/**/*"],
-  "exclude": ["./src/client/**/*", "./src/test/fixtures/**"]
+  "files": ["./index.tsx"],
+  "include": ["./**/*"],
+  "exclude": ["./test/fixtures/**"]
 }

@@ -13,9 +13,23 @@
   "types": "dist/index.d.ts",
   "license": "AGPL",
   "dependencies": {
+    "@types/koa": "^2.0.45",
+    "@types/koa-bodyparser": "^4.2.0",
+    "@types/koa-route": "^3.2.3",
+    "@types/koa-static": "^4.0.0",
     "@types/node": "^9.4.7",
+    "@types/react": "^16.3.10",
+    "@types/react-dom": "^16.0.5",
     "@types/ws": "^4.0.2",
+    "koa": "^2.5.0",
+    "koa-bodyparser": "^4.2.0",
+    "koa-cors": "^0.0.16",
+    "koa-route": "^3.2.0",
+    "koa-static": "^4.0.2",
     "querystring": "^0.2.0",
+    "react": "^16.3.1",
+    "react-dom": "^16.3.1",
+    "redux-jetpack": "^0.0.14",
     "ws": "^5.0.0"
   },
   "devDependencies": {

@@ -30,8 +30,8 @@ async function init(ssb: ScuttleBot, config: SSBConfig) {
     await setupScuttleKit(config);
   }
 
-  const scuttleKitState = await getScuttleKitState(config);
-  await auth.init(scuttleKitState);
+  const state = await getScuttleKitState(config);
+  await auth.init(state);
 
   const app = new koa();
   app.use(cors());

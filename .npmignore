@@ -1,0 +1,10 @@
+server/src/*
+server/dist/test/*
+client/src/*
+client/dist/test/*
+server/build.sh
+client/build.sh
+.jshintrc
+.gitignore
+static/bundle.js
+static/bundle.js.map

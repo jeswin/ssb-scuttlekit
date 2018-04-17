@@ -10,8 +10,6 @@
     "build": "./build.sh",
     "test": "mocha dist/test/test.js"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "license": "AGPL",
   "dependencies": {
     "@types/react": "^16.3.11",
@@ -35,6 +33,7 @@
     "@types/should": "^11.2.0",
     "mocha": "*",
     "should": "*",
-    "ts-loader": "^4.2.0"
+    "ts-loader": "^4.2.0",
+    "typescript": "^2.8.1"
   }
 }

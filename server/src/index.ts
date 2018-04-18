@@ -1,13 +1,18 @@
 import * as fs from "fs";
 import * as http from "http";
+import koa = require("koa");
+import bodyParser = require("koa-bodyparser");
+import route = require("koa-route");
+import serve = require("koa-static");
 import * as path from "path";
 import * as qs from "querystring";
 import * as url from "url";
 import WebSocket = require("ws");
-import * as api from "./api";
 import * as auth from "./auth";
+import * as pages from "./pages";
 import { IAppSettings, IToken } from "./types/basic";
 
+const cors = require("koa-cors");
 const packageJSON = require("../package.json");
 
 type ScuttleBot = any;
@@ -28,23 +33,19 @@ async function init(ssb: ScuttleBot, config: SSBConfig) {
   const state = await getScuttleKitState(config);
   await auth.init(state);
 
-  const server = http.createServer(async (req, res) => {
-    addCORSHeaders(res);
-    if (req.method === "OPTIONS") {
-      res.writeHead(200);
-      res.end();
-    } else if (req.url === "/") {
-      res.writeHead(200);
-      res.write(`<p>ScuttleKit ${packageJSON.version} is installed.</p>`);
-      res.end();
-    } else if (req.url === "/register") {
-    } else if (req.url === "/validate" && req.method === "POST") {
-      return await api.validate(req, res);
-    }
+  const app = new koa();
+  app.use(cors());
+  app.use(bodyParser());
+  app.use(serve("./client", { prefix: "/client" } as any));
+  app.use(route.get("/", pages.home));
+  app.use(route.post("/register", pages.register));
+
+  const port = config.scuttlekitPort || 1103;
+  const server = app.listen(port, function listening() {
+    console.log("ScuttleKit listening on %d", server.address().port);
   });
 
   const wss = new WebSocket.Server({ server });
-
   wss.on("connection", (ws: WebSocket, req: http.IncomingMessage) => {
     ws.on("message", (messageJSON: string) => {
       const { method, args } = JSON.parse(messageJSON);
@@ -55,11 +56,6 @@ async function init(ssb: ScuttleBot, config: SSBConfig) {
       }
     });
     ws.send("something");
-  });
-
-  const port = config.scuttlekitPort || 1103;
-  server.listen(port, function listening() {
-    console.log("ScuttleKit listening on %d", server.address().port);
   });
 }
 

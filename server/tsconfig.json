@@ -6,18 +6,13 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,
-    "lib": [
-      "es2018"
-    ],
+    "lib": ["es2018"],
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "strict": true,
     "types": ["node"]
   },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "./src/test/fixtures/**"
-  ]
+  "files": ["./src/index.ts"],
+  "include": ["./src/**/*"],
+  "exclude": ["./src/client/**/*", "./src/test/fixtures/**"]
 }

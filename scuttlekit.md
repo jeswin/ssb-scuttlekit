@@ -1,44 +1,49 @@
 # ScuttleKit - Distributed P2P Database Replication Protocol
 
-This paper describes the implementation of a peer-to-peer distributed database by gossiping edits over a p2p network network such as Secure ScuttleButt. The goal is to make the database eventually consistent.
+This paper describes a method for implementing an secure, eventually consistent, peer-to-peer distributed database over a gossip-based mesh network such as Secure ScuttleButt.
 
 ## Encryption
 
-One of the challenges in a P2P database is to replicate database edits securely over an open network, without non-participants being able to read the edits. For our example, we'll consider a p2p network having 4 participants - Alice, Bob, Caron and Dan.
+One of the challenges in a P2P database is to replicate (amongst selected peers) database edits securely over an open network, without non-participants being able to read the edits. The edits will be packages as stringified JSON messages, but we'll worry about their exact formatting later. Just assume them to be strings.
+
+For our examples, we'll consider a p2p network having 4 participants - Alice, Bob, Carol and Dan.
 
 ### Key Chains
 
-Consider the example of Alice wanting to send a message to Bob and Carol, without Dan being able to read it. The record (R) is { f1, f2, f3, f4 }, with f1-4 being fields in the record.
+Consider the example of Alice wanting to send a message M (representing a database edit) to Bob and Carol, without Dan being able to read it.
 
-1.  First Alice generates a random key to encrypt the message. Let's call it K.
-2.  Generate a random id, I (called keychain identifier)
-3.  Encrypt I with K, to gen IeK
-4.  Encrypt K with PA (Alice's public key) to get KePA
-5.  llly, encrypt K with PkB and PkC as well, to get KePB and KePC respectively
-6.  Alice creates a message called "key-chain" holding the above data, signs it, and replicates it (sends it on the p2p network).
+1.  Alice generates a random id, I (called keychain identifier)
+2.  Generate an ephemeral keypair, eph_pub and eph_prv
+3.  Generates a random key to encrypt the message. Let's call it K.
+4.  Encrypt I with K, to get IeK
+5.  Generate a list of shared secrets from eph_prv and the public keys of all recipients; that is Alice, Bob and Carol. sh_A, sh_B and sh_C.
+6.  Throw away eph_prv
+7.  Encrypt K with shared secret sh_A to get KA
+8.  llly, encrypt K with sh_B and sh_C as well, to get KB and KC
+9.  Alice creates a message called "key-chain" holding the above data, signs it, and replicates it (sends it on the p2p network).
 
 ```js
 const keychain = {
   type: "scuttlekit-keychain",
   id: IeK,
-  keys: KePA + ":" + KePB + ":" + KePC
+  eph: eph_pub,
+  keys: KA + ":" + KB + ":" + KC
 };
 signAndReplicateOverNetwork(keychain);
 ```
 
-Once the keychain is transmitted across the network, Alice encrypts the message representing the database edit with K, and puts it in an envelope along with the key id 'I'.
+Once the keychain is transmitted across the network, Alice encrypts the message representing the database edit with K, and puts it in an envelope along with the key id 'I'. The key I is visible to everyone.
 
 ```js
-const encryptedMessage = encryptWithK(dbEdit);
 const wrappedMessage = {
   type: "my-db-edit",
-  encryptedMessage: encryptedMessage,
+  encryptedMessage,
   keychain: I
 };
-signAndReplicateOverNetwork(encryptedMessage);
+signAndReplicateOverNetwork(wrappedMessage);
 ```
 
-Since Alice is replicating across the P2P network, Bob, Carol and Dan will receive keychain messages. But Dan will not be able to decrypt the keychain since it was only encrypted with Alice's, Bob's and Carol's public key. Bob and Carol on the other hand will be able to decrypt the secret key K. Using the secret key, Bob and Carol will also be able to decrypt the keychain identifier.
+Since Alice is replicating across the P2P network, Bob, Carol and Dan will receive keychain messages. Bob and Carol will be able to extract the shared secret using their private keys, and then use the shared secret to decrypt the key K which can then decrypt the message. In addition to the message, using the key K, Bob and Carol will also be able to decrypt the key identifier I. On the other hand, Dan will not be able to derive the key K since the shared secret can only be derived for Alice's, Bob's and Carol's public keys.
 
 If Alice wants to send another message to the same recipients, the same keychain could be reused. If a key is somehow lost, Alice should recreate another keychain with the same recipients and start using that instead.
 
@@ -50,13 +55,15 @@ Some P2P networks (such as Secure ScuttleButt) limit the size of messages that c
 const keychain1 = {
   type: "scuttlekit-keychain",
   id: IeK,
-  keys: KePX1 + ":" + KePX2 + ":" + KePX3 
+  eph: eph_pub,
+  keys: KX1 + ":" + KX2 + ":" + KX3
 };
 
 const keychain1 = {
   type: "scuttlekit-keychain",
   id: IeK,
-  keys: KePX4 + ":" + KePX5 + ":" + KePX6
+  eph: eph_pub,
+  keys: KX4 + ":" + KX5 + ":" + KX6
 };
 signAndReplicateOverNetwork(keychain1);
 signAndReplicateOverNetwork(keychain2);
@@ -66,18 +73,20 @@ signAndReplicateOverNetwork(keychain2);
 
 The keychain mechanism above lets us share encrypted communication with groups of people. However, there are some inefficiencies with this mechanism when it comes to heirarchical social relationships such as organizations.
 
-For instance, imagine there's a message M1 which is readable by group G1. There's also a message M2 which is readable by G1 and G2, and a message M3 which is readable by G1 and G3. This sort of heirarchical permissions are often necessary in groups and organizations - for example admins need access to many messages.
+For instance, imagine there's a message M1 which is readable by group G1 (consisting of say, administrators). There's also a message M2 which is readable by G1 and G2, and a message M3 which is readable by G1 and G3. This sort of heirarchical permissions are often necessary in groups and organizations.
 
-We make a small change to the previously described keychain mechanism to allow this. The random key K in the keychain may be encrypted with either the Public Key of the recipients, or with a key K(existing) mentioned in a previous Keychain. In effect, in addition to the individual recipients in a keychain, everybody who has access to the key K(existing) from a previous keychain can also read the newly generated key K.
+We make a small change to the previously keychain format to allow this. We allow the key K to be encrypted with any previously transmitted key (say Kx), in addition to being encrypted with shared secrets corresponding to various recipients. That is, anyone who has access to the key Kx from a previous keychain may also read the newly generated key K.
 
-In the following example, the keys are encrypted by the Public Keys of A and B, as well as the Key stored in a previous keychain ("some-keychain-id"). So all the recipients in the keychain with id "some-keychain-id" can now read the message as well.
+In the following example, the key K is encrypted with shared secrets corresponding to A, B and C, as well as the key Kx stored in a previous keychain ("some-keychain-id"). So the recipients in the keychain with id "some-keychain-id" can read the message as well.
 
 ```js
 const KX = getKeyForKeychain("some-keychain-id");
+
 const keychain = {
   type: "scuttlekit-keychain",
   id: IeK,
-  keys: KePA + ":" + KePB + ":" + KeKX
+  eph: eph_pub,
+  keys: KA + ":" + KB + ":" + KC + ":" + KKX
 };
 signAndReplicateOverNetwork(keychain);
 ```
@@ -85,3 +94,7 @@ signAndReplicateOverNetwork(keychain);
 This also means that when a group changes due a person exiting (or other compromise), the corresponding keychain as well as other keychains linked to that keychain need to be invalidated.
 
 ## Database
+
+# Acknowledgements
+
+The crypto part is a variation of the Private Box format written by Dominic Tarr, used in Secure ScuttleButt. https://github.com/auditdrivencrypto/private-box

@@ -75,13 +75,13 @@ The keychain mechanism above lets us share encrypted communication with groups o
 
 For instance, imagine there's a message M1 which is readable by group G1 (consisting of say, administrators). There's also a message M2 which is readable by G1 and G2, and a message M3 which is readable by G1 and G3. This sort of heirarchical permissions are often necessary in groups and organizations.
 
-We make a small change to the previously keychain format to allow this. We allow the key K to be encrypted with any previously transmitted key (say Kx), in addition to being encrypted with shared secrets corresponding to various recipients. That is, anyone who has access to the key Kx from a previous keychain may also read the newly generated key K.
+We make a small change to the previously described keychain format to allow this. We allow the key K to be encrypted with any previously transmitted key (say Kx), and append them to the "keys" property of the keychain. That is, anyone who has access to the key Kx from a previous keychain may also read the newly generated key K. That's in addition to the individual recipients who will be able to read K as before.
 
 In the following example, the key K is encrypted with shared secrets corresponding to A, B and C, as well as the key Kx stored in a previous keychain ("some-keychain-id"). So the recipients in the keychain with id "some-keychain-id" can read the message as well.
 
 ```js
 const KX = getKeyForKeychain("some-keychain-id");
-
+const KKX = encrypt(K, KX); //encrypt K with KX
 const keychain = {
   type: "scuttlekit-keychain",
   id: IeK,
@@ -93,7 +93,15 @@ signAndReplicateOverNetwork(keychain);
 
 This also means that when a group changes due a person exiting (or other compromise), the corresponding keychain as well as other keychains linked to that keychain need to be invalidated.
 
+## Performance Optimizations
+
+Users are expected to keep their keys in memory, indexed against the keychain identifier. All encrypted messages will specify the keychain identifier required to decrypt it - so caches keys are immensely useful.
+
+For sending messages to the same set of recipients, keys may be reused within an arbitrary timeframe. This saves time for the sender and the receiver; especially receivers since they'll be able to simply use a cached key to decrypt a message. Once a message has been decrypted, it may be stored in plain text so that it wouldn't need decryption when accessed again. 
+
 ## Database
+
+Now that we know how to securely send messages in the network
 
 # Acknowledgements
 

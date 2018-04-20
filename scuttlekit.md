@@ -1,10 +1,10 @@
 # ScuttleKit - Distributed P2P Database Replication Protocol
 
-This paper describes a method for implementing an secure, eventually consistent, peer-to-peer distributed database over a gossip-based mesh network such as Secure ScuttleButt.
+This document describes a method for implementing an secure, eventually consistent, peer-to-peer distributed database over a gossip-based mesh network such as Secure ScuttleButt.
 
 ## Encryption
 
-One of the challenges in a P2P database is to replicate (amongst selected peers) database edits securely over an open network, without non-participants being able to read the edits. The edits will be packages as stringified JSON messages, but we'll worry about their exact formatting later. Just assume them to be strings.
+One of the challenges in a P2P database is to replicate (amongst selected peers) database edits securely over an open network, without non-participants being able to read the edits. The edits will be packages as stringified JSON messages, but we'll worry about their exact formatting later. Just assume them to be strings. The approach is a modified form of the private-box scheme used in Secure ScuttleButt.
 
 For our examples, we'll consider a p2p network having 4 participants - Alice, Bob, Carol and Dan.
 
@@ -13,13 +13,13 @@ For our examples, we'll consider a p2p network having 4 participants - Alice, Bo
 Consider the example of Alice wanting to send a message M (representing a database edit) to Bob and Carol, without Dan being able to read it.
 
 1.  Alice generates a random id, I (called keychain identifier)
-2.  Generate an ephemeral keypair, eph_pub and eph_prv
+2.  Generate an ephemeral curve25519 keypair, eph_pub and eph_prv
 3.  Generates a random key to encrypt the message. Let's call it K.
 4.  Encrypt I with K, to get IeK
-5.  Generate a list of shared secrets from eph_prv and the public keys of all recipients; that is Alice, Bob and Carol. sh_A, sh_B and sh_C.
+5.  Generate a list of shared secrets (sh_A, sh_B and sh_C) by multiplying eph_prv and the public key of each recipient.
 6.  Throw away eph_prv
 7.  Encrypt K with shared secret sh_A to get KA
-8.  llly, encrypt K with sh_B and sh_C as well, to get KB and KC
+8.  Similarly, encrypt K with sh_B and sh_C as well, to get KB and KC
 9.  Alice creates a message called "key-chain" holding the above data, signs it, and replicates it (sends it on the p2p network).
 
 ```js
@@ -97,11 +97,76 @@ This also means that when a group changes due a person exiting (or other comprom
 
 Users are expected to keep their keys in memory, indexed against the keychain identifier. All encrypted messages will specify the keychain identifier required to decrypt it - so caches keys are immensely useful.
 
-For sending messages to the same set of recipients, keys may be reused within an arbitrary timeframe. This saves time for the sender and the receiver; especially receivers since they'll be able to simply use a cached key to decrypt a message. Once a message has been decrypted, it may be stored in plain text so that it wouldn't need decryption when accessed again. 
+For sending messages to the same set of recipients, keys may be reused within an arbitrary timeframe. This saves time for the sender and the receiver; especially receivers since they'll be able to simply use a cached key to decrypt a message. Once a message has been decrypted, it may be stored in plain text so that it wouldn't need decryption when accessed again.
 
 ## Database
 
-Now that we know how to securely send messages in the network
+Now that we know how to securely send messages in the network, let's get to the format for replicating database edit logs. The database is designed to be eventually consistent, if all messages get replicated to everyone.
+
+### Schemas
+
+We have to start with a database schema. The schema things that you'd typically encounter in a relational database schema - such as column definitions, foreign keys and indexes. The primary key is not included in the schema and will always be named "__id" with the type "string". Foreign keys will always need to reference __id in the primary key table.
+
+Here is a JSON example of a schema.
+
+```js
+const schema = {
+  tables: {
+    todo: {
+      fields: {
+        text: { type: "string", maxLength: 200 },
+        dueDate: { type: "string" },
+        completed: { type: "boolean" },
+        timestamp: { type: "number", required: false },
+        listId: { type: "string" }
+      },
+      encrypted: { type: "boolean" },
+      foreignKeys: [{ field: "listId", table: "lists" }]
+      indexes: [
+        ["completed"],
+        ["completed", "timestamp"]
+      ]
+    },
+    list: {
+      fields: {
+        name: { type: "string" }
+      }
+    }
+  }
+};
+```
+
+### Inserts
+
+An insert message takes the general form:
+
+```js
+const primaryKey = userId + "_" + randomKey;
+const fields = {
+  f1: "x",
+  f2: "y",
+  f3: "z"
+}
+
+```
+
+
+```js
+
+```
+
+
+
+
+
+
+To insert a row, 
+
+ and is not autogenerated - but needs to be provided during the creation of a row. It needs to be a string, prefixed with the id of the user who created the row.
+The primary 
+
+
+
 
 # Acknowledgements
 

@@ -1,4 +1,4 @@
-# ScuttleKit SecureKey - Encryption of database replication gossip
+# ScuttleKit SecureKey - Encrypting ScuttleKit's Database Replication Gossip
 
 The ScuttleKit project implements a secure, eventually consistent, peer-to-peer distributed database over a gossip-based mesh network like Secure ScuttleButt. Database edits are shared in the form of JSON messages, and hold information to perform operations such as edits, inserts and deletes. Messages are signed by the user making the edit.
 

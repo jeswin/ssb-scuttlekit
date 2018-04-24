@@ -9,18 +9,23 @@ When messages are replicated in a group, there needs to be a way
 ```js
 import { random, db, auth, sync } from "scuttlekit";
 
-async function createList(name: string) {
-  const key = random("list");
+async function createProject(name: string) {
+  const key = random.createWithPrefix("project");
 
+  // Get or create a group containing alice and bob
   const owners = await auth.getGroup([alice, bob]);
-  
-  const ownerTokenName = `${"OWNER"}_${key}`;
-  const ownerToken = await auth.createToken("OWNER", ownerTokenName, owners);
+  const ownerToken = await auth.createToken({
+    name: `${"OWNER"}_${key}`,
+    users: owners
+  });
 
   const editors = await auth.getGroup([carol, dan]);
-  const editTokenName = `${"EDIT"}_${key}`;
-  const editToken = await auth.createToken(editTokenName, editors, {
-    fields: ["reviewed", "quality"]
+  const editToken = await auth.createToken({
+    name: `${"EDIT"}_${key}`,
+    users: editors,
+    data: {
+      fields: ["reviewed", "quality"]
+    }
   });
 
   const record = {
@@ -28,7 +33,7 @@ async function createList(name: string) {
     timestamp: Date.now()
   };
 
-  const record = await db.insert("list", record, {
+  const record = await db.insert("project", record, {
     key,
     tokens: [ownerToken, editToken]
   });
@@ -40,15 +45,15 @@ async function createList(name: string) {
 ```js
 import { db, auth, sync } from "scuttlekit";
 
-async function addNewEditorToList(listId, newUser) {
-  const editTokenName = `${"EDIT"}_${listId}`;
+async function addProjectManager(projectId, newUser) {
+  const editTokenName = `${"EDIT"}_${projectId}`;
   const token = await auth.getToken(editTokenName);
   const newGroup = await auth.getGroup(token.users.concat(newUser));
-  const newToken = await 
+  const newToken = await
 
-  const list = await scuttlekit.getById(listId);
+  const project = await db.getById(projectId);
 
-  const token = await scuttlekit.getToken(list.__token);
+  const token = await scuttlekit.getToken(project.__token);
   const newToken = await scuttlekit.addUsersToToken([carol]);
 }
 ```

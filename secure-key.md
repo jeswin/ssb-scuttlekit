@@ -9,7 +9,7 @@ We'll use examples to illustrate how SecureKey works. In our examples, assume th
 
 ### How it works
 
-SecureKey helps a peer transmit a secret random key (and a unique key identifier) securely to a group of selected peers. This random key can be then used to encrypt outgoing database-edit messages from that peer to the group. Messages will have a reference to the key identifier in the body, so that recipients can quickly see if they have the key necessary for decryption.
+SecureKey helps a peer transmit a secret random key (and a unique key identifier) securely to a group of selected peers. This random key can be then used to encrypt outgoing database-edit messages from that peer to the group. Database-edit messages will have a reference to the key identifier in the body, so recipients can immediately see if they have the key necessary to decrypt the message. If they don't have the valid key, the message is skipped.
 
 Consider the example of Alice wanting to send a message M (representing a database edit) to Bob and Carol, without Dan being able to read it.
 
@@ -46,7 +46,9 @@ signAndReplicateOverNetwork(wrappedMessage);
 
 Since Alice is replicating across the P2P network, Bob, Carol and Dan will receive SecureKey messages. Bob and Carol will be able to extract the shared secret using their private keys, and then use the shared secret to decrypt the key K. K can then decrypt the key identifier, as well as subsequent messages sent by Alice. On the other hand, Dan will not be able to derive the key K since the shared secret can only be derived from Alice's, Bob's and Carol's private keys.
 
-If Alice wants to send another message to the same recipients, the same key could be reused. If a key is somehow lost or compromised, Alice should recreate another key with the same recipients and start using that instead.
+If Alice wants to send another message to the same recipients, the same key may be reused. But using multiple keys for the same group might offer better security. In addition, it is recommended to recreate keys frequently.
+
+If a key is somehow lost or compromised, Alice must recreate another key with the same recipients and abandon the older key.
 
 ### Message Sizes
 
@@ -70,7 +72,7 @@ signAndReplicateOverNetwork(key1);
 signAndReplicateOverNetwork(key2);
 ```
 
-### Key Trees
+### Encryption in Hierarchical Groups
 
 SecureKey lets us share encrypted messages with groups of people. However, there are some inefficiencies with this mechanism when it comes to heirarchical social relationships such as organizations.
 
@@ -96,7 +98,7 @@ When a group changes due a person exiting (or other compromise), the correspondi
 
 ## Performance Optimizations
 
-Users are expected to keep their keys in memory, indexed against the key identifier. All encrypted messages will specify the key identifier required to decrypt it - so fast key lookup from a cache is very useful.
+Users are expected to keep their keys in memory, indexed against the key identifier. All encrypted messages will specify the key identifier required to decrypt it - so fast key lookup from a cache is possible.
 
 For sending messages to the same set of recipients, keys may be reused within an arbitrary timeframe. This saves time for the sender and the receiver; especially receivers since they'll be able to simply use a cached key to decrypt a message. Once a message has been decrypted, it may be stored in plain text so that it wouldn't need decryption when accessed again.
 

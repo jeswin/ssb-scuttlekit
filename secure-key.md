@@ -46,7 +46,7 @@ signAndReplicateOverNetwork(wrappedMessage);
 
 Since Alice is replicating across the P2P network, Bob, Carol and Dan will receive SecureKey messages. Bob and Carol will be able to extract the shared secret using their private keys, and then use the shared secret to decrypt the key K. K can then decrypt the key identifier, as well as subsequent messages sent by Alice. On the other hand, Dan will not be able to derive the key K since the shared secret can only be derived from Alice's, Bob's and Carol's private keys.
 
-If Alice wants to send another message to the same recipients, the same key may be reused. But using multiple keys for the same group might offer better security. In addition, it is recommended to recreate keys frequently.
+If Alice wants to send another message to the same recipients, the same key may be reused. But using multiple keys for the same group might offer some protection from listeners analyzing metadata to learn a peer's communication patterns. It is also recommended to recreate keys frequently.
 
 If a key is somehow lost or compromised, Alice must recreate another key with the same recipients and abandon the older key.
 

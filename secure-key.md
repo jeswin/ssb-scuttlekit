@@ -3,13 +3,13 @@
 The ScuttleKit project implements a secure, eventually consistent, peer-to-peer distributed database over a gossip-based mesh network like Secure ScuttleButt. Database edits are shared in the form of JSON messages, and hold information to perform operations such as inserts, updates and deletes. Messages are signed by the user making the edit.
 
 One of the challenges in a P2P database is to replicate database edits securely over an open network without non-participants being able to read the edits. The private-box scheme (https://github.com/auditdrivencrypto/private-box
-) used in Secure ScuttleButt already allows for private communication between peers. SecureKey is a minor modification over private-box to suit ScuttleKit's database replication. The main difference over private-box is that SecureKey is only used for distributing keys for later use and not for communicating messages. In addition, it defines a key identifier to help with caching, and a mechanism to handle hierarchies of trust seen in organizations and groups.
+) used in Secure ScuttleButt already allows for private communication between peers. SecureKey is a minor modification over private-box to suit ScuttleKit's database replication. The key difference over private-box is that SecureKey is only used for distributing keys for later use and not for communicating messages. In addition, it defines a key identifier to help with caching, and a mechanism to handle hierarchies of trust seen in organizations and groups.
 
 We'll use examples to illustrate how SecureKey works. In our examples, assume that our P2P network has 4 participants - Alice, Bob, Carol and Dan.
 
 ### How it works
 
-SecureKey helps a peer transmit a secret random key (with a unique identifier) securely to other peers. This random key can later be used to encrypt messages containing database edits that are gossipped across the P2P network. Messages will have a reference to the key identifier in the body, so that recipients can quickly see if they have the key necessary for decryption.
+SecureKey helps a peer transmit a secret random key (and a unique key identifier) securely to a group of selected peers. This random key can be then used to encrypt outgoing database-edit messages from that peer to the group. Messages will have a reference to the key identifier in the body, so that recipients can quickly see if they have the key necessary for decryption.
 
 Consider the example of Alice wanting to send a message M (representing a database edit) to Bob and Carol, without Dan being able to read it.
 
